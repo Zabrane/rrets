@@ -18,49 +18,26 @@
 %% limitations under the License.
 %% Erlang diff-match-patch implementation
 
--module(rrets).
+-module(rrets_utils).
 -author("Maas-Maarten Zeeman <mmzeeman@xs4all.nl>").
 
 %% calendar:datetime_to_gregorian_seconds({{1970,1,1},{0,0,0}}).
 -define(UNIX_EPOCH, 62167219200).
 
 -export([
-    open/1,
-    log/2,
-    info/1,
-    sync/1,
-    close/1
+    unix_time/0,
+    unix_time_to_datetime/1
 ]).
 
-open(Args) ->
-    %%   {name, test_log},
-    %%   {file, "test_log"},
-    %%   {size, {1024, 4}},
-    DiskLogArgs = [{type, wrap}, {format, internal} | Args],
+unix_time() ->
+    datetime_to_epoch_seconds(erlang:universaltime(), ?UNIX_EPOCH).
 
-    case disk_log:open(DiskLogArgs) of
-        {error, _Reason}=Error ->
-            lager:error("Error triggered while opening. Error: ~p.", [Error]),
-            Error;
-        {ok, Log} -> 
-            {ok, Log};
-        {repaired, Log, {recovered, Rec}, {badbytes, Bad}} ->
-            lager:info("Repair triggered while opening ~s. "
-                "Info: ~p terms recovered, ~p bytes lost.", [Log, Rec, Bad]),
-            {ok, Log}
-    end.
+unix_time_to_datetime(Ts) ->
+    epoch_seconds_to_datetime(Ts, ?UNIX_EPOCH).
 
-log(Log, Term) ->
-    Ts = rrets_utils:unix_time(),
-    ok = disk_log:alog(Log, {Ts, Term}),
-    Ts.
+datetime_to_epoch_seconds({{_,_,_},{_,_,_}}=DateTime, Epoch) ->
+    calendar:datetime_to_gregorian_seconds(DateTime) - Epoch.
 
-info(Log) ->
-    disk_log:info(Log).
-
-sync(Log) ->
-    disk_log:sync(Log).
-
-close(Log) ->
-    ok = disk_log:close(Log).
+epoch_seconds_to_datetime(Ts, Epoch) ->
+    calendar:gregorian_seconds_to_datetime(Ts + Epoch).
 
