@@ -23,7 +23,7 @@ For example:
 
 ```erlang
 
-MatchSpec = ets:fun2ms(fun({Timestamp, {exampe, 2, X}}) -> {Timestamp, {example, 2, X}} end),
+MatchSpec = ets:fun2ms(fun({Timestamp, {example, 2, X}}) -> {Timestamp, {example, 2, X}} end),
 Continuation = rrets_reader:open("my_storage", MatchSpec),
 {Records, Continuation1} = rrets_reader:match(Continuation),
 ...
