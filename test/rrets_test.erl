@@ -47,6 +47,12 @@ unix_time_test() ->
     T = rrets_utils:unix_time(),
     {{_Year, _Month, _Day}, {_Hour, _Min, _Sec}} = rrets_utils:unix_time_to_datetime(T),
 
+    T2 = rrets_utils:unix_time({{1970,11,8},{7,50,0}}),
+    {{1970, 11, 8}, {7, 50, 0}} = rrets_utils:unix_time_to_datetime(T2),
+
+    T3 = rrets_utils:unix_time({{2003,10,7},{23,50,13}}),
+    {{2003, 10, 7}, {23, 50, 13}} = rrets_utils:unix_time_to_datetime(T3),
+
     ok.
     
 
