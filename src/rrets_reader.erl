@@ -22,6 +22,7 @@
 -author("Maas-Maarten Zeeman <mmzeeman@xs4all.nl>").
 
 -export([
+    open/1,
     open/2,
     match/1,
     close/1
@@ -29,30 +30,45 @@
 
 -record(continuation, {
     filename,
-    match_spec,
+    process_fun,
     wl_continuation 
 }).
 
+open(Filename) ->
+    {ok, Continuation} = wrap_log_reader:open(Filename),
+    Fun = fun(Terms) -> Terms end,
+    #continuation{filename=Filename, wl_continuation=Continuation, process_fun=Fun}.
 
 %%
 open(Filename, MatchPattern) ->
     CompiledMatchPattern = ets:match_spec_compile(MatchPattern),
     {ok, Continuation} = wrap_log_reader:open(Filename),
-    #continuation{filename=Filename, wl_continuation=Continuation, match_spec=CompiledMatchPattern}.
+    Fun = fun(Terms) -> ets:match_spec_run(Terms, CompiledMatchPattern) end,
+    #continuation{filename=Filename, wl_continuation=Continuation, process_fun=Fun}.
 
-match(#continuation{wl_continuation=Continuation, match_spec=MatchSpec}=C) ->
+match(Continuation) ->
+    chunk(Continuation).
+
+chunk(Continuation) ->
+    process_chunk(Continuation).
+
+close(#continuation{wl_continuation=Continuation}) ->
+    wrap_log_reader:close(Continuation).
+
+%%
+%% Helpers
+%% 
+    
+process_chunk(#continuation{wl_continuation=Continuation, process_fun=F}=C) ->
     case wrap_log_reader:chunk(Continuation) of
         {error, _Reason}=Error ->
             Error;
         {Continuation1, eof} ->
             {eof, C#continuation{wl_continuation=Continuation1}};
         {Continuation1, Terms} ->
-            {ets:match_spec_run(Terms, MatchSpec), C#continuation{wl_continuation=Continuation1}};
+            {F(Terms), C#continuation{wl_continuation=Continuation1}};
         {Continuation1, Terms, BadBytes} ->
             lager:info("~p bytes lost.", [BadBytes]),
-            {ets:match_spec_run(Terms, MatchSpec), C#continuation{wl_continuation=Continuation1}}
+            {F(Terms), C#continuation{wl_continuation=Continuation1}}
     end.
 
-close(#continuation{wl_continuation=Continuation}) ->
-    wrap_log_reader:close(Continuation).
-    
