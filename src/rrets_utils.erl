@@ -26,11 +26,15 @@
 
 -export([
     unix_time/0,
+    unix_time/1,
     unix_time_to_datetime/1
 ]).
 
 unix_time() ->
-    datetime_to_epoch_seconds(erlang:universaltime(), ?UNIX_EPOCH).
+    unix_time(erlang:universaltime()).
+
+unix_time({{_,_,_},{_,_,_}}=DateTime) ->
+    datetime_to_epoch_seconds(DateTime, ?UNIX_EPOCH).
 
 unix_time_to_datetime(Ts) ->
     epoch_seconds_to_datetime(Ts, ?UNIX_EPOCH).
