@@ -50,7 +50,12 @@ match(Continuation) ->
     chunk(Continuation).
 
 chunk(Continuation) ->
-    process_chunk(Continuation).
+    case process_chunk(Continuation) of
+        {[], Continuation1} ->
+            chunk(Continuation1);
+        Result ->
+            Result
+    end.
 
 close(#continuation{wl_continuation=Continuation}) ->
     wrap_log_reader:close(Continuation).
