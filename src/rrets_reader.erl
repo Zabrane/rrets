@@ -73,7 +73,7 @@ process_chunk(#continuation{wl_continuation=Continuation, process_fun=F}=C) ->
         {Continuation1, Terms} ->
             {F(Terms), C#continuation{wl_continuation=Continuation1}};
         {Continuation1, Terms, BadBytes} ->
-            lager:info("~p bytes lost.", [BadBytes]),
+            logger:info("~p bytes lost.", [BadBytes]),
             {F(Terms), C#continuation{wl_continuation=Continuation1}}
     end.
 
