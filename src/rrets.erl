@@ -39,12 +39,12 @@ open(Args) ->
 
     case disk_log:open(DiskLogArgs) of
         {error, _Reason}=Error ->
-            lager:error("Error triggered while opening. Error: ~p.", [Error]),
+            logger:error("Error triggered while opening. Error: ~p.", [Error]),
             Error;
         {ok, Log} -> 
             {ok, Log};
         {repaired, Log, {recovered, Rec}, {badbytes, Bad}} ->
-            lager:info("Repair triggered while opening ~s. "
+            logger:info("Repair triggered while opening ~s. "
                 "Info: ~p terms recovered, ~p bytes lost.", [Log, Rec, Bad]),
             {ok, Log}
     end.
